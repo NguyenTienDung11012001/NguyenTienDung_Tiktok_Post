@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="tiktok_access_token_form" model="ir.ui.view">
+            <field name="name">tiktok.access.token.form</field>
+            <field name="model">tiktok.access.token</field>
+            <field name="arch" type="xml">
+                <form string="Access Token">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="display_name" placeholder="Title"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="username"/>
+                                <field name="open_id"/>
+                                <field name="access_token"/>
+                                <field name="access_token_time_out"/>
+                                <field name="refresh_token"/>
+                                <field name="refresh_token_timeout"/>
+                                <field name="is_business_account"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="tiktok_access_token_tree" model="ir.ui.view">
+            <field name="name">tiktok.access.token.tree</field>
+            <field name="model">tiktok.access.token</field>
+            <field name="arch" type="xml">
+                <tree string="Access Token">
+                    <field name="display_name"/>
+                    <field name="username"/>
+                    <field name="access_token_time_out"/>
+                    <field name="is_business_account"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="tiktok_access_token_act" model="ir.actions.act_window">
+            <field name="name">Access Token</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tiktok.access.token</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Tiktok Account"
+                  id="access_token_menu"
+                  parent="video_model_root"
+                  action="tiktok_access_token_act"/>
+
+    </data>
+</odoo>

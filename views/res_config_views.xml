@@ -1,0 +1,39 @@
+<odoo>
+    <data>
+        <record id="res_config_settings_view_shopify_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.shopify</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="5"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('settings')]" position="inside">
+                    <div class="app_settings_block" data-string="Tiktok App" string="Tiktok Settings"
+                         data-key="Tiktok">
+                        <h2>Tiktok Config</h2>
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box" id="shopify_app">
+                                <div class="o_setting_right_pane">
+                                    <span class="o_form_label">Tiktok</span>
+                                    <div class="content-group">
+                                        <div class="row mt16">
+                                            <label for="client_id" string="Client Id"
+                                                   class="col-lg-3 o_light_label"/>
+                                            <field name="client_id"/>
+                                        </div>
+                                    </div>
+                                    <div class="content-group">
+                                        <div class="row mt16">
+                                            <label for="client_secret" string="Client Secret"
+                                                   class="col-lg-3 o_light_label"/>
+                                            <field name="client_secret"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
