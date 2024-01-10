@@ -7,25 +7,47 @@
             <field name="inherit_id" ref="base.res_config_settings_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//div[hasclass('settings')]" position="inside">
-                    <div class="app_settings_block" data-string="Tiktok App" string="Tiktok Settings"
+                    <div class="app_settings_block" data-string="Tiktok App" string="Upload Video Settings"
                          data-key="Tiktok">
                         <h2>Tiktok Config</h2>
                         <div class="row mt16 o_settings_container">
-                            <div class="col-12 col-lg-6 o_setting_box" id="shopify_app">
+                            <div class="col-12 col-lg-6 o_setting_box" id="tiktok_app">
                                 <div class="o_setting_right_pane">
                                     <span class="o_form_label">Tiktok</span>
                                     <div class="content-group">
                                         <div class="row mt16">
-                                            <label for="client_id" string="Client Id"
+                                            <label for="tiktok_client_id" string="Client Id"
                                                    class="col-lg-3 o_light_label"/>
-                                            <field name="client_id"/>
+                                            <field name="tiktok_client_id"/>
                                         </div>
                                     </div>
                                     <div class="content-group">
                                         <div class="row mt16">
-                                            <label for="client_secret" string="Client Secret"
+                                            <label for="tiktok_client_secret" string="Client Secret"
                                                    class="col-lg-3 o_light_label"/>
-                                            <field name="client_secret"/>
+                                            <field name="tiktok_client_secret"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h2>Google Config</h2>
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box" id="google_app">
+                                <div class="o_setting_right_pane">
+                                    <span class="o_form_label">Google</span>
+                                    <div class="content-group">
+                                        <div class="row mt16">
+                                            <label for="google_client_id" string="Client Id"
+                                                   class="col-lg-3 o_light_label"/>
+                                            <field name="google_client_id"/>
+                                        </div>
+                                    </div>
+                                    <div class="content-group">
+                                        <div class="row mt16">
+                                            <label for="google_client_secret" string="Client Secret"
+                                                   class="col-lg-3 o_light_label"/>
+                                            <field name="google_client_secret"/>
                                         </div>
                                     </div>
                                 </div>

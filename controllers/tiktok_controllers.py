@@ -21,7 +21,6 @@ class TiktokPost(http.Controller):
             case 'ads':
                 return werkzeug.utils.redirect(ads_url)
 
-
     @http.route('/tiktok/finalize/', type='http', auth='public')
     def tiktok_finalize(self, **kw):
         match kw.get('state'):

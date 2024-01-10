@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="google_access_token_form" model="ir.ui.view">
+            <field name="name">google.access.token.form</field>
+            <field name="model">google.access.token</field>
+            <field name="arch" type="xml">
+                <form string="Access Token">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="username"/>
+                                <field name="display_name"/>
+                                <field name="access_token"/>
+                                <field name="access_token_expiry"/>
+                                <field name="refresh_token"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="google_access_token_tree" model="ir.ui.view">
+            <field name="name">google.access.token.tree</field>
+            <field name="model">google.access.token</field>
+            <field name="arch" type="xml">
+                <tree string="Access Token">
+                    <field name="username"/>
+                    <field name="display_name"/>
+                    <field name="access_token"/>
+                    <field name="access_token_expiry"/>
+                    <field name="refresh_token"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="google_access_token_act" model="ir.actions.act_window">
+            <field name="name">Access Token</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">google.access.token</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no channel here, please click to Connect Google menu to create new!
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="google_model_root"
+                  name="Youtube"
+                  sequence="30"/>
+
+        <menuitem name="Youtube Channel"
+                  id="google_access_token_menu"
+                  parent="google_model_root"
+                  action="google_access_token_act"/>
+
+        <record model="ir.actions.act_url" id="action_google_url">
+            <field name="name">Open Google</field>
+            <field name="url">https://odoo.website/google</field>
+            <field name="target">self</field>
+        </record>
+
+        <menuitem name="Connect Youtube"
+                  id="connect_google_menu"
+                  parent="google_model_root"
+                  action="action_google_url"/>
+
+    </data>
+</odoo>
