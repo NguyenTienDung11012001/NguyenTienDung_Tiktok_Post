@@ -9,26 +9,30 @@ from datetime import datetime, timedelta
 class TiktokPost(http.Controller):
     @http.route('/tiktok', type='http', auth='public')
     def tiktok(self, type):
+        print(type)
         client_id = http.request.env['ir.config_parameter'].sudo().get_param('tiktok_post.client_id')
         if not client_id:
             return 'Please go to Settings --> Tiktok Setting --> Enter your client_id and client_secret'
 
-        ads_url = f'https://business-api.tiktok.com/portal/auth?app_id={client_id}&state=ads&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F'
+        ads_url = f'https://business-api.tiktok.com/portal/auth?app_id={client_id}&state={type}&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F'
         account_url = f'https://www.tiktok.com/v2/auth/authorize?client_key={client_id}&scope=user.info.basic%2Cuser.info.username%2Cuser.info.stats%2Cuser.account.type%2Cuser.insights%2Cvideo.list%2Cvideo.insights%2Ccomment.list%2Ccomment.list.manage%2Cvideo.publish&response_type=code&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F&state=account'
-        match type:
+        match type[:7]:
             case 'account':
                 return werkzeug.utils.redirect(account_url)
-            case 'ads':
+            case 'ads0000':
                 return werkzeug.utils.redirect(ads_url)
+        return werkzeug.utils.redirect('/web')
 
     @http.route('/tiktok/finalize/', type='http', auth='public')
     def tiktok_finalize(self, **kw):
-        match kw.get('state'):
+        print(kw)
+        match kw.get('state')[:7]:
             case 'account':
                 self.get_account_info(kw)
-            case 'ads':
-                self.upload_video(self, kw)
-        return 'Done, now close this window and come back to app!'
+            case 'ads0000':
+                self.get_business_info(kw)
+        action_id = http.request.env.ref('tiktok_post.tiktok_access_token_act').id
+        return werkzeug.utils.redirect(f'/web#view_type=list&model=google.access.token&action={action_id}')
 
     @staticmethod
     def get_account_info(kw):
@@ -95,7 +99,7 @@ class TiktokPost(http.Controller):
             print(response)
 
     @staticmethod
-    def upload_video(self, kw):
+    def get_business_info(kw):
         print('*******************************************************************************************************')
         client_id = http.request.env['ir.config_parameter'].sudo().get_param('tiktok_post.client_id')
         client_secret = http.request.env['ir.config_parameter'].sudo().get_param('tiktok_post.client_secret')
@@ -110,41 +114,50 @@ class TiktokPost(http.Controller):
             "auth_code": kw.get('auth_code'),
         }
         response = requests.post(url, json=data, headers=headers).json()
-
+        print(" ----- ads authentication response ----- ".upper())
+        print(response)
         if response.get('code') == 0:
-            a_data = response.get('data')
-            access_token = a_data.get('access_token')
-            advertiser_id = a_data.get('advertiser_ids')[0] 
-            video_file = ("vid.mp4", open("/home/adpttq113/Downloads/vid.mp4", "rb")) 
-            video_signature = self.calculate_md5('/home/adpttq113/Downloads/vid.mp4')
-    
-            url = "https://business-api.tiktok.com/open_api/v1.3/file/video/ad/upload/"
-            headers = {
-                "Access-Token": access_token,
-                "Content-Type": "multipart/form-data"
-            }
-            data = {
-                "upload_type": 'UPLOAD_BY_FILE',
-                "advertiser_id": f'{advertiser_id}',
-                "file_name": "sarah_test-through-file",
-                "video_signature": video_signature,
-            }
-            file = {
-                "video_file": video_file
-            }
-            response = requests.post(url, data=data, headers=headers, files=file)
-            print(response.status_code)
-            print(response.json())
+            data = response.get('data')
+            username = kw.get('state')[7:]
+            tiktok_model = http.request.env['tiktok.access.token'].search([('username', '=', username)])
+            tiktok_model.write({
+                'advertiser_id': data.get('advertiser_ids')[0],
+                'business_account_access_token': data.get('access_token'),
+            })
         else:
             print(" ----- Code ----- ".upper())
             print(response.get('code'))
             print(" ----- Response ----- ".upper())
             print(response)
 
-    @staticmethod
-    def calculate_md5(file_path):
-        md5 = hashlib.md5()
-        with open(file_path, 'rb') as file: 
-            for byte_block in iter(lambda: file.read(4096), b""):
-                md5.update(byte_block)
-        return md5.hexdigest()
+        # if response.get('code') == 0:
+        #     a_data = response.get('data')
+        #     access_token = a_data.get('access_token')
+        #     advertiser_id = a_data.get('advertiser_ids')[0]
+        #     video_file = ("vid.mp4", open("/home/adpttq113/Downloads/vid.mp4", "rb"))
+        #     video_signature = self.calculate_md5('/home/adpttq113/Downloads/vid.mp4')
+        #     print(" ----- video_signature ----- ".upper())
+        #     print(video_signature)
+        #
+        #     url = "https://business-api.tiktok.com/open_api/v1.3/file/video/ad/upload/"
+        #     headers = {
+        #         "Access-Token": access_token,
+        #         "Content-Type": "multipart/form-data"
+        #     }
+        #     data = {
+        #         "upload_type": 'UPLOAD_BY_FILE',
+        #         "advertiser_id": f'{advertiser_id}',
+        #         "file_name": "sarah_test-through-file",
+        #         "video_signature": video_signature,
+        #     }
+        #     file = {
+        #         "video_file": video_file
+        #     }
+        #     response = requests.post(url, data=data, headers=headers, files=file)
+        #     print(f'CODE: {response.status_code}')
+        #     print(response.text)
+        # else:
+        #     print(" ----- Code ----- ".upper())
+        #     print(response.get('code'))
+        #     print(" ----- Response ----- ".upper())
+        #     print(response)

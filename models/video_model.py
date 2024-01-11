@@ -1,7 +1,9 @@
 import datetime
 import requests
+import hashlib
 
 from odoo import fields, models, api, http
+from odoo.exceptions import ValidationError
 
 
 class TiktokModel(models.Model):
@@ -9,41 +11,67 @@ class TiktokModel(models.Model):
     _description = 'Tiktok video'
 
     name = fields.Char(string='Video title', required=True)
-    video_url = fields.Char(string='Video URL', required=True)
+    video_path = fields.Char(string='Path to your video', required=True)
+    video_url = fields.Char(string='Video URL', readonly=True)
     schedule = fields.Datetime(string='Schedule', required=True)
     is_publish = fields.Boolean(string='Is publish', default=False, readonly=True)
     tiktok_account = fields.Many2one('tiktok.access.token', string='Tiktok Account', required=True)
 
-    @api.depends('action_done', 'tiktok_account')
-    def _compute_state(self):
-        for rec in self:
-            if not rec.tiktok_account:
-                rec.state = 'draft'
-                if rec.action_done:
-                    rec.state = 'done'
-            else:
-                rec.state = 'pending'
-
     def set_is(self):
         self.is_publish = False
 
-    @api.model
     def post_video(self):
         videos = self.search([('schedule', '<', fields.Datetime.now()),
                               ('is_publish', '=', False)])
 
         if videos:
             for video in videos:
-                if video.tiktok_account.access_token_time_out < datetime.datetime.now():
-                    access_token = self.renew_access_token(video.tiktok_account,
-                                                           video.tiktok_account.refresh_token)
-                else:
-                    access_token = video.tiktok_account.access_token
+                if video.video_url:
+                    if video.tiktok_account.access_token_time_out < datetime.datetime.now():
+                        access_token = self.renew_access_token(video.tiktok_account,
+                                                               video.tiktok_account.refresh_token)
+                    else:
+                        access_token = video.tiktok_account.access_token
 
-                result = self.publish_video(access_token, video.tiktok_account.open_id,
-                                            video.video_url, video.name)
-                if result == 0:
-                    video.is_publish = True
+                    result = self.publish_video(access_token, video.tiktok_account.open_id,
+                                                video.video_url, video.name)
+                    if result == 0:
+                        video.is_publish = True
+                else:
+                    raise ValidationError('You have to get video URL before publish a video')
+
+    @staticmethod
+    def calculate_md5(file_path):
+        md5 = hashlib.md5()
+        with open(file_path, 'rb') as file:
+            for byte_block in iter(lambda: file.read(4096), b""):
+                md5.update(byte_block)
+        return md5.hexdigest()
+
+    def get_video_url(self):
+        if self.tiktok_account.is_business_account:
+            video_file = open(self.video_path, "rb")
+            video_signature = self.calculate_md5(self.video_path)
+
+            url = 'https://business-api.tiktok.com/open_api/v1.3/file/video/ad/upload/'
+            headers = {
+                "Access-Token": self.tiktok_account.business_account_access_token,
+            }
+            data = {
+                'advertiser_id': self.tiktok_account.advertiser_id,
+                'video_signature': video_signature,
+            }
+            video_file_args = {"video_file": video_file}
+
+            rsp = requests.post(url, data=data, headers=headers, files=video_file_args).json()
+
+            if rsp.get('code') == 0:
+                data = rsp.get('data')[0]
+                self.video_url = data.get('preview_url')
+            else:
+                raise ValidationError(f'{rsp}')
+        else:
+            raise ValidationError('If you want to get video URL, your tiktok account must be a business account')
 
     @staticmethod
     def publish_video(access_token, open_id, video_url, caption):

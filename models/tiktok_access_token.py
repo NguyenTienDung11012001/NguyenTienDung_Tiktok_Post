@@ -1,5 +1,7 @@
 import datetime
 
+import werkzeug.utils
+from odoo.exceptions import ValidationError
 from odoo import fields, models, api
 
 
@@ -15,6 +17,8 @@ class AccessToken(models.Model):
     refresh_token = fields.Char(string='Refresh Token', readonly=True, required=True)
     refresh_token_timeout = fields.Datetime(string='Refresh Token Timeout', readonly=True, required=True)
     is_business_account = fields.Boolean(string='Is Business Account', readonly=True, required=True)
+    advertiser_id = fields.Char(string="Advertiser ID", readonly=True)
+    business_account_access_token = fields.Char(string='Business Account Access Token', readonly=True)
 
     def name_get(self):
         res = []
@@ -22,3 +26,13 @@ class AccessToken(models.Model):
             name = record.username
             res.append((record.id, name))
         return res
+
+    def get_advertiser_id(self):
+        if self.is_business_account:
+            return {
+                "url": f"/tiktok?type=ads0000{self.username}",
+                "type": "ir.actions.act_url",
+                "target": 'self',
+            }
+        else:
+            raise ValidationError("Your account must be a business account")

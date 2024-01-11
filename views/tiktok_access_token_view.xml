@@ -7,6 +7,9 @@
             <field name="model">tiktok.access.token</field>
             <field name="arch" type="xml">
                 <form string="Access Token">
+                    <header>
+                        <button name="get_advertiser_id" string="Get Advertiser ID" type="object" class="btn-primary"/>
+                    </header>
                     <sheet>
                         <div class="oe_title">
                             <h1>
@@ -22,6 +25,8 @@
                                 <field name="refresh_token"/>
                                 <field name="refresh_token_timeout"/>
                                 <field name="is_business_account"/>
+                                <field name="advertiser_id"/>
+                                <field name="business_account_access_token"/>
                             </group>
                         </group>
                     </sheet>

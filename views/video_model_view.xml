@@ -7,11 +7,16 @@
             <field name="model">video.model</field>
             <field name="arch" type="xml">
                 <form>
+                    <header>
+                        <button name="get_video_url" string="Get Video URL" type="object" class="btn-primary"/>
+                        <button name="set_is" string="Set is publish is false" type="object"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="tiktok_account"
                                    placeholder="If you don't see your account, please click to Connect Tiktok menu"/>
                             <field name="name"/>
+                            <field name="video_path"/>
                             <field name="video_url"/>
                             <field name="schedule"/>
                             <field name="is_publish"/>
@@ -27,7 +32,7 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
-                    <field name="video_url"/>
+                    <field name="video_path"/>
                     <field name="schedule"/>
                     <field name="is_publish"/>
                 </tree>
