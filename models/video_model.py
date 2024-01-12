@@ -38,7 +38,14 @@ class TiktokModel(models.Model):
                     if result == 0:
                         video.is_publish = True
                 else:
-                    raise ValidationError('You have to get video URL before publish a video')
+                    print(video)
+                    print(" ----- Your Video ----- ".upper())
+                    print('Title', video.name)
+                    print('Account', video.tiktok_account.username)
+                    print('Schedule', video.schedule)
+                    print('Path', video.video_path)
+                    print('Is publish:', video.is_publish)
+                    print('You have to get video URL before publish a video')
 
     @staticmethod
     def calculate_md5(file_path):
@@ -50,26 +57,29 @@ class TiktokModel(models.Model):
 
     def get_video_url(self):
         if self.tiktok_account.is_business_account:
-            video_file = open(self.video_path, "rb")
-            video_signature = self.calculate_md5(self.video_path)
+            if self.tiktok_account.advertiser_id:
+                video_file = open(self.video_path, "rb")
+                video_signature = self.calculate_md5(self.video_path)
 
-            url = 'https://business-api.tiktok.com/open_api/v1.3/file/video/ad/upload/'
-            headers = {
-                "Access-Token": self.tiktok_account.business_account_access_token,
-            }
-            data = {
-                'advertiser_id': self.tiktok_account.advertiser_id,
-                'video_signature': video_signature,
-            }
-            video_file_args = {"video_file": video_file}
+                url = 'https://business-api.tiktok.com/open_api/v1.3/file/video/ad/upload/'
+                headers = {
+                    "Access-Token": self.tiktok_account.business_account_access_token,
+                }
+                data = {
+                    'advertiser_id': self.tiktok_account.advertiser_id,
+                    'video_signature': video_signature,
+                }
+                video_file_args = {"video_file": video_file}
 
-            rsp = requests.post(url, data=data, headers=headers, files=video_file_args).json()
+                rsp = requests.post(url, data=data, headers=headers, files=video_file_args).json()
 
-            if rsp.get('code') == 0:
-                data = rsp.get('data')[0]
-                self.video_url = data.get('preview_url')
+                if rsp.get('code') == 0:
+                    data = rsp.get('data')[0]
+                    self.video_url = data.get('preview_url')
+                else:
+                    raise ValidationError(f'{rsp}')
             else:
-                raise ValidationError(f'{rsp}')
+                raise ValidationError('You have to get Advertiser ID of your account')
         else:
             raise ValidationError('If you want to get video URL, your tiktok account must be a business account')
 

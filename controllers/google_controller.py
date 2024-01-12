@@ -1,19 +1,13 @@
 import json
-import datetime
 from odoo import http
 from odoo.http import request
 import werkzeug
 import traceback
 import logging
 import os
-import random
-import time
 
 from google_auth_oauthlib.flow import Flow
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from googleapiclient.errors import HttpError
 
 _logger = logging.getLogger(__name__)
 
@@ -65,8 +59,7 @@ class GooglePost(http.Controller):
         credentials = flow.credentials
 
         # --------------------------------- GET YOUTUBE CHANNEL INFO ---------------------------------
-        youtube = build(
-            'youtube', 'v3', credentials=credentials)
+        youtube = build('youtube', 'v3', credentials=credentials)
 
         request = youtube.channels().list(
             part="snippet,contentDetails,statistics",

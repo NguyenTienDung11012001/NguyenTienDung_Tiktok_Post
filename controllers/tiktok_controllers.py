@@ -124,6 +124,10 @@ class TiktokPost(http.Controller):
                 'advertiser_id': data.get('advertiser_ids')[0],
                 'business_account_access_token': data.get('access_token'),
             })
+            uid = tiktok_model.id
+            action_id = http.request.env.ref('tiktok_post.tiktok_access_token_act').id
+            print(action_id, uid)
+            return werkzeug.utils.redirect(f'/web#view_type=form&model=google.access.token&action={action_id}&id={uid}')
         else:
             print(" ----- Code ----- ".upper())
             print(response.get('code'))
