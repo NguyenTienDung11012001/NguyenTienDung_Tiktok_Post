@@ -1,6 +1,9 @@
+import json
+
 import werkzeug.utils
 import requests
 import hashlib
+import os
 from odoo import http
 
 from datetime import datetime, timedelta
@@ -9,10 +12,15 @@ from datetime import datetime, timedelta
 class TiktokPost(http.Controller):
     @http.route('/tiktok', type='http', auth='public')
     def tiktok(self, type):
-        print(type)
+        file_path = os.path.join(os.path.dirname(__file__), "tiktok_config.json")
+
         client_id = http.request.env['ir.config_parameter'].sudo().get_param('tiktok_post.client_id')
         if not client_id:
-            return 'Please go to Settings --> Tiktok Setting --> Enter your client_id and client_secret'
+            config_data = json.load(open(file_path, "r"))
+            client_id = config_data.get('client_id')
+            client_secret = config_data.get('client_secret')
+            http.request.env['ir.config_parameter'].sudo().set_param('tiktok_post.client_id', client_id)
+            http.request.env['ir.config_parameter'].sudo().set_param('tiktok_post.client_secret', client_secret)
 
         ads_url = f'https://business-api.tiktok.com/portal/auth?app_id={client_id}&state={type}&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F'
         account_url = f'https://www.tiktok.com/v2/auth/authorize?client_key={client_id}&scope=user.info.basic%2Cuser.info.username%2Cuser.info.stats%2Cuser.account.type%2Cuser.insights%2Cvideo.list%2Cvideo.insights%2Ccomment.list%2Ccomment.list.manage%2Cvideo.publish&response_type=code&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F&state=account'
