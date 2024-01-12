@@ -58,7 +58,18 @@ class UploadVideoYt(models.Model):
                 body=body,
                 media_body=MediaFileUpload(self.path, chunksize=-1, resumable=True))
 
-            result = self.resumable_upload(res)
+            print('Uploading file...')
+            status, response = res.next_chunk()
+            print(response)
+            if response is not None:
+                if 'id' in response:
+                    print('Video id "%s" was successfully uploaded.' % response['id'])
+                    result = 'Success'
+                else:
+                    print('The upload failed with an unexpected response: %s' % response)
+                    result = f'The upload failed with an unexpected response: {response}'
+            else:
+                result = 'There is no response'
 
             if result == 'Success':
                 self.isPublish = True
@@ -81,42 +92,3 @@ class UploadVideoYt(models.Model):
         credentials = Credentials.from_authorized_user_info(data)
 
         return build('youtube', 'v3', credentials=credentials)
-
-    @staticmethod
-    def resumable_upload(request):
-        result = None
-        response = None
-        error = None
-        retry = 0
-        while response is None:
-            try:
-                print('Uploading file...')
-                status, response = request.next_chunk()
-                if response is not None:
-                    if 'id' in response:
-                        print('Video id "%s" was successfully uploaded.' % response['id'])
-                        result = 'Success'
-                    else:
-                        result = 'Fail'
-                        exit('The upload failed with an unexpected response: %s' % response)
-            except HttpError as e:
-                if e.resp.status in [500, 502, 503, 504]:
-                    error = 'A retriable HTTP error %d occurred:\n%s' % (e.resp.status, e.content)
-                else:
-                    result = 'A retriable HTTP error'
-            except [500, 502, 503, 504] as e:
-                error = 'A retriable error occurred: %s' % e
-
-            if error is not None:
-                print(error)
-                retry += 1
-                if retry > 10:
-                    exit('No longer attempting to retry.')
-                    result = error
-
-                max_sleep = 2 ** retry
-                sleep_seconds = random.random() * max_sleep
-                print('Sleeping %f seconds and then retrying...' % sleep_seconds)
-                time.sleep(sleep_seconds)
-
-        return result

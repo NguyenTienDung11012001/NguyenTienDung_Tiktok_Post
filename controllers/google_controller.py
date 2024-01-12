@@ -25,13 +25,16 @@ class GooglePost(http.Controller):
         file_path = os.path.join(os.path.dirname(__file__), CLIENT_SECRETS_FILE)
         flow = Flow.from_client_secrets_file(file_path, scopes=scopes)
         flow.redirect_uri = REDIRECT_URI
-        
-        with open(file_path, "r") as json_file:
-            client_config = json.load(json_file)
-            client_id = client_config.get('web').get('client_id')
-            client_secret = client_config.get('web').get('client_secret')
-            request.env['ir.config_parameter'].sudo().set_param('tiktok_post.google_client_id', client_id)
-            request.env['ir.config_parameter'].sudo().set_param('tiktok_post.google_client_secret', client_secret)
+
+        client_id = request.env['ir.config_parameter'].sudo().get_param('tiktok_post.google_client_id')
+        client_secret = request.env['ir.config_parameter'].sudo().get_param('tiktok_post.google_client_secret')
+        if (not client_id) or (not client_secret):
+            with open(file_path, "r") as json_file:
+                client_config = json.load(json_file)
+                client_id = client_config.get('web').get('client_id')
+                client_secret = client_config.get('web').get('client_secret')
+                request.env['ir.config_parameter'].sudo().set_param('tiktok_post.google_client_id', client_id)
+                request.env['ir.config_parameter'].sudo().set_param('tiktok_post.google_client_secret', client_secret)
 
         return flow
 
