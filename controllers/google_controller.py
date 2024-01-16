@@ -69,7 +69,7 @@ class GooglePost(http.Controller):
             mine=True
         )
         res = request.execute()
-
+        # Sử lý trường hợp chưa tạo kênh
         item = res.get('items')
         snippet = item[0].get('snippet')
         username = snippet.get('customUrl')

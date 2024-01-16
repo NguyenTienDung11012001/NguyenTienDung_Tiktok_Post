@@ -24,21 +24,19 @@ class TiktokPost(http.Controller):
 
         ads_url = f'https://business-api.tiktok.com/portal/auth?app_id={client_id}&state={type}&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F'
         account_url = f'https://www.tiktok.com/v2/auth/authorize?client_key={client_id}&scope=user.info.basic%2Cuser.info.username%2Cuser.info.stats%2Cuser.account.type%2Cuser.insights%2Cvideo.list%2Cvideo.insights%2Ccomment.list%2Ccomment.list.manage%2Cvideo.publish&response_type=code&redirect_uri=https%3A%2F%2Fodoo.website%2Ftiktok%2Ffinalize%2F&state=account'
-        match type[:7]:
-            case 'account':
-                return werkzeug.utils.redirect(account_url)
-            case 'ads0000':
-                return werkzeug.utils.redirect(ads_url)
+        if type[:7] == 'account':
+            return werkzeug.utils.redirect(account_url)
+        elif type[:7] == 'ads0000':
+            return werkzeug.utils.redirect(ads_url)
         return werkzeug.utils.redirect('/web')
 
     @http.route('/tiktok/finalize/', type='http', auth='public')
     def tiktok_finalize(self, **kw):
         print(kw)
-        match kw.get('state')[:7]:
-            case 'account':
-                self.get_account_info(kw)
-            case 'ads0000':
-                self.get_business_info(kw)
+        if kw.get('state')[:7] == 'account':
+            self.get_account_info(kw)
+        elif kw.get('state')[:7] == 'ads0000':
+            self.get_business_info(kw)
         action_id = http.request.env.ref('tiktok_post.tiktok_access_token_act').id
         return werkzeug.utils.redirect(f'/web#view_type=list&model=google.access.token&action={action_id}')
 
