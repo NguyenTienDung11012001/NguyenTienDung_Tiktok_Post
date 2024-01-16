@@ -69,25 +69,30 @@ class GooglePost(http.Controller):
             mine=True
         )
         res = request.execute()
-        # Sử lý trường hợp chưa tạo kênh
         item = res.get('items')
-        snippet = item[0].get('snippet')
-        username = snippet.get('customUrl')
+        if item:
+            snippet = item[0].get('snippet')
+            username = snippet.get('customUrl')
 
-        google_model = http.request.env['google.access.token'].search([('username', '=', username)])
-        if not google_model:
-            google_model.create({
-                'username': snippet.get('customUrl'),
-                'display_name': snippet.get('title'),
-                'access_token': credentials.token,
-                'access_token_expiry': credentials.expiry,
-                'refresh_token': credentials.refresh_token,
-            })
+            google_model = http.request.env['google.access.token'].search([('username', '=', username)])
+            if not google_model:
+                google_model.create({
+                    'username': snippet.get('customUrl'),
+                    'display_name': snippet.get('title'),
+                    'access_token': credentials.token,
+                    'access_token_expiry': credentials.expiry,
+                    'refresh_token': credentials.refresh_token,
+                })
+            else:
+                print(" ----- account is exist ----- ".upper())
+
+            action_id = http.request.env.ref('tiktok_post.google_access_token_act').id
+            return werkzeug.utils.redirect(f'/web#view_type=list&model=google.access.token&action={action_id}')
         else:
-            print(" ----- account is exist ----- ".upper())
-
-        action_id = http.request.env.ref('tiktok_post.google_access_token_act').id
-        return werkzeug.utils.redirect(f'/web#view_type=list&model=google.access.token&action={action_id}')
+            return '''
+                <h1>You don't have a youtube channel</h1>
+                Create one or choose <a href='https://odoo.website/google'>another google account</a>                
+            '''
 
     # @staticmethod
     # def build_youtube_obj(obj):
