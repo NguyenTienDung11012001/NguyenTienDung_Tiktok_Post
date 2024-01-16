@@ -27,9 +27,9 @@
         'security/ir.model.access.csv',
         'views/res_config_views.xml',
         'views/video_model_view.xml',
-        'views/upload_video_yt.xml',
         'views/tiktok_access_token_view.xml',
         'views/google_access_token_view.xml',
+        'views/upload_video_yt.xml',
         'data/cron_job_post_vid.xml',
     ],
 }
