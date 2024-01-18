@@ -17,7 +17,7 @@
                             <field name="description"/>
                             <field name="tags" placeholder="Each tag is separated by 1 space"/>
                             <field name="categoryId" placeholder="See youtube category id and pick one of them"/>
-                            <field name="path" placeholder="Path to your video"/>
+                            <field name="video_file"/>
                             <field name="publishAt"/>
                             <field name="isPublish"/>
                         </group>
