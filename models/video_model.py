@@ -1,7 +1,11 @@
 import datetime
+import os
 import requests
 import hashlib
-
+import base64
+import pathlib
+import subprocess
+import random
 from odoo import fields, models, api, http
 from odoo.exceptions import ValidationError
 
@@ -11,11 +15,11 @@ class TiktokModel(models.Model):
     _description = 'Tiktok video'
 
     name = fields.Char(string='Video title', required=True)
-    video_path = fields.Char(string='Path to your video', required=True)
     video_url = fields.Char(string='Video URL', readonly=True)
     schedule = fields.Datetime(string='Schedule', required=True)
     is_publish = fields.Boolean(string='Is publish', default=False, readonly=True)
     tiktok_account = fields.Many2one('tiktok.access.token', string='Tiktok Account', required=True)
+    mp4_file = fields.Binary('Video MP4 file', required=True)
 
     def set_is(self):
         self.is_publish = False
@@ -43,7 +47,6 @@ class TiktokModel(models.Model):
                     print('Title', video.name)
                     print('Account', video.tiktok_account.username)
                     print('Schedule', video.schedule)
-                    print('Path', video.video_path)
                     print('Is publish:', video.is_publish)
                     print('You have to get video URL before publish a video')
 
@@ -55,11 +58,31 @@ class TiktokModel(models.Model):
                 md5.update(byte_block)
         return md5.hexdigest()
 
+    @staticmethod
+    def overwrite_input_file(path, data):
+        file = open(path, 'wb')
+        file.write((base64.b64decode(data)))
+        file.close()
+
+    def get_mp4_file(self):
+        input_file = f'{pathlib.Path(__file__).parent.parent}/static/video/tiktok_mp4.bin'
+        self.overwrite_input_file(input_file, self.mp4_file)
+
+        output_file = f'{pathlib.Path(__file__).parent.parent}/static/video/dungtien{random.randint(10000, 99999)}.mp4'
+
+        command = f"ffmpeg -i {input_file} {output_file}"
+        subprocess.call(command, shell=True)
+
+        return output_file
+
     def get_video_url(self):
         if self.tiktok_account.is_business_account:
             if self.tiktok_account.advertiser_id:
-                video_file = open(self.video_path, "rb")
-                video_signature = self.calculate_md5(self.video_path)
+                video_path = self.get_mp4_file()
+                print(" ----- video_path ----- ".upper())
+                print(video_path)
+                video_file = open(video_path, "rb")
+                video_signature = self.calculate_md5(video_path)
 
                 url = 'https://business-api.tiktok.com/open_api/v1.3/file/video/ad/upload/'
                 headers = {
@@ -72,6 +95,9 @@ class TiktokModel(models.Model):
                 video_file_args = {"video_file": video_file}
 
                 rsp = requests.post(url, data=data, headers=headers, files=video_file_args).json()
+                print(" ----- rsp ----- ".upper())
+                print(rsp)
+                os.remove(video_path)
 
                 if rsp.get('code') == 0:
                     data = rsp.get('data')[0]
@@ -109,7 +135,11 @@ class TiktokModel(models.Model):
     @staticmethod
     def renew_access_token(model, refresh_token):
         client_id = http.request.env['ir.config_parameter'].sudo().get_param('tiktok_post.client_id')
+        print(" ----- client_id ----- ".upper())
+        print(client_id)
         client_secret = http.request.env['ir.config_parameter'].sudo().get_param('tiktok_post.client_secret')
+        print(" ----- client_secret ----- ".upper())
+        print(client_secret)
 
         url = "https://business-api.tiktok.com/open_api/v1.3/tt_user/oauth2/refresh_token/"
         headers = {
